@@ -921,11 +921,11 @@ const SCRIPT_2: Msg[] = [
   ...SCRIPT,
   // ── Új párbeszéd (ezt írd át kedved szerint!) ──
   { from: 'friend', text: 'Heeey... Ez gyönyörű volt. 😭' },
-  { from: 'me',    text: 'Ugye? Azt akartam, hogy tudd...' },
+  { from: 'me',    text: 'Ugye?' },
   { from: 'me',    text: 'Szóval. Mit szólsz hozzá? 🥺' },
   { from: 'friend', text: 'Mit szólok?.. Nem tudok mit mondani.' },
   { from: 'friend', text: 'Csak annyit tudok, hogy én is szeretlek. ❤️' },
-  { from: 'me',    text: 'Akkor minden rendben van a világban. 💕' },
+  { from: 'me',    text: 'Na jól van bro, kopj le. xD' },
 ];
 
 const HISTORY_COUNT = SCRIPT.length; // ennyi az "előzmény"
