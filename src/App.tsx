@@ -89,66 +89,79 @@ function playKeyClick() {
   } catch {}
 }
 
-// iPhone "sent" hang – jellegzetes whoosh/swoosh
+// iPhone "sent" hang – mélyebb, puhább whoosh
 function playSentSound() {
   try {
     const ctx = getAudioCtx();
     const now = ctx.currentTime;
 
-    // Sweep felfelé: a "küldés" érzete
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(600, now);
+    filter.Q.value = 0.7;
+    filter.connect(ctx.destination);
+
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(720, now + 0.12);
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(420, now + 0.15);
     gain.gain.setValueAtTime(0.0, now);
-    gain.gain.linearRampToValueAtTime(0.22, now + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.2);
+    gain.gain.linearRampToValueAtTime(0.28, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.connect(gain); gain.connect(filter);
+    osc.start(now); osc.stop(now + 0.25);
 
-    // Kis "puff" a végén
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(480, now + 0.1);
-    osc2.frequency.exponentialRampToValueAtTime(320, now + 0.18);
+    osc2.frequency.setValueAtTime(280, now + 0.1);
+    osc2.frequency.exponentialRampToValueAtTime(180, now + 0.22);
     gain2.gain.setValueAtTime(0.0, now + 0.1);
-    gain2.gain.linearRampToValueAtTime(0.1, now + 0.12);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-    osc2.connect(gain2); gain2.connect(ctx.destination);
-    osc2.start(now + 0.1); osc2.stop(now + 0.22);
+    gain2.gain.linearRampToValueAtTime(0.12, now + 0.14);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc2.connect(gain2); gain2.connect(filter);
+    osc2.start(now + 0.1); osc2.stop(now + 0.27);
   } catch {}
 }
 
-// iPhone "received" hang – halk, lágy pop/ding
+// iPhone "received" hang – mélyebb, lágy ding
 function playReceivedSound() {
   try {
     const ctx = getAudioCtx();
     const now = ctx.currentTime;
 
-    // Két egymást követő halk sine – "ding-ding"
-    [0, 0.07].forEach((offset, i) => {
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(700, now);
+    filter.Q.value = 0.5;
+    filter.connect(ctx.destination);
+
+    [0, 0.09].forEach((offset, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(i === 0 ? 659 : 784, now + offset); // E5, G5
+      osc.frequency.setValueAtTime(i === 0 ? 330 : 392, now + offset); // E4, G4
       gain.gain.setValueAtTime(0.0, now + offset);
-      gain.gain.linearRampToValueAtTime(0.13, now + offset + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.15);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(now + offset); osc.stop(now + offset + 0.18);
+      gain.gain.linearRampToValueAtTime(0.18, now + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.22);
+      osc.connect(gain); gain.connect(filter);
+      osc.start(now + offset); osc.stop(now + offset + 0.25);
     });
   } catch {}
 }
 
 const SCRIPT: Msg[] = [
-  { from: 'friend', text: 'Tesóm.. Megint szerelmes vagy?...' },
-  { from: 'me',    text: 'Cső bro.. Asszem igen, bele zúgtam valakibe..' },
-  { from: 'friend', text: 'Már megint? Csak össze töri a szíved..' },
+  { from: 'me',    text: 'Cső bro.. Asszem bele zúgtam valakibe..' },
+  { from: 'friend', text: 'Ahh hell nah bro, megint belefutottál a csapdába..' },
+  { from: 'friend', text: 'Össze fogja törni a szíved mint az előző picsa.' },
   { from: 'me',    text: 'Dehogy faszi! Érzem, hogy ő az igazi! Annyira tökéletes...' },
+  { from: 'me',    text: 'Cuki, édes, elfogadó, törődő... Viszonozza a szeretetet amit adok.' },
   { from: 'me',    text: 'Szerelmes vagyok...' },
   { from: 'friend', text: 'Mit jelent számodra a szerelem?' },
+  { from: 'friend', text: 'Mármint hogy érted azt, hogy szerelmes vagy?' },
+  { from: 'friend', text: 'Én csak átmegyek egy nőn és ennyi.. Nem szoktam érezni, de tudod te.. Neked is ezt kellene tenned lehet.' },
+  { from: 'me',    text: 'Ez nekem sosem feküdt, tudod jól...' },
   { from: 'me',    text: 'Mit jelent számomra a szerelem?' },
   { from: 'me',    text: 'Mindjárt megmutatom brochaco. 💕' },
 ];
@@ -299,7 +312,7 @@ const MessengerScreen = ({ onDone }: { onDone: () => void }) => {
               <button onClick={onDone}
                 className="group flex items-center gap-3 px-7 py-3.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white font-mono text-xs tracking-widest uppercase shadow-lg shadow-pink-500/25 transition-all duration-300 hover:scale-105">
                 <Lock size={14} className="group-hover:rotate-12 transition-transform" />
-                nyomj rám kicsim. 💕
+                Decrypt Message
                 <span className="terminal-cursor" />
               </button>
             </motion.div>
@@ -622,6 +635,9 @@ const LOVE_QUOTES = [
 // const SONG_SRC = '/src/assets/song.mp3';
 const SONG_SRC: string | null = '/src/assets/song.mp3'
 
+// Globális audio ref – a Slideshow tölti fel, a RevealScreen olvassa
+const globalAudioRef = { current: null as HTMLAudioElement | null };
+
 const Slideshow = ({ onDone }: { onDone: () => void }) => {
   const [idx, setIdx] = useState(0);
   const [anim, setAnim] = useState<SlideAnim>(randomSlideAnim());
@@ -644,6 +660,7 @@ const Slideshow = ({ onDone }: { onDone: () => void }) => {
       audio.loop = true;
       audio.volume = 0.7;
       audioRef.current = audio;
+      globalAudioRef.current = audio;
       audio.play().catch(() => {});
       // Keep playing - don't stop on unmount
       return () => {};
@@ -848,9 +865,246 @@ const Slideshow = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
-// ─── Main App ─────────────────────────────────────────────────────────────────
+// ─── Reveal Screen (nagy szívecske + zene fade 10mp után) ─────────────────────
+const RevealScreen = ({ onDone }: { onDone: () => void }) => {
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
+  useEffect(() => {
+    const fadeStart = 10000;
+    const fadeDuration = 2000;
+
+    const t1 = setTimeout(() => {
+      // Fade out a zene
+      const audio = globalAudioRef.current;
+      if (audio) {
+        const startVol = audio.volume;
+        const steps = 40;
+        const stepTime = fadeDuration / steps;
+        let step = 0;
+        const iv = setInterval(() => {
+          step++;
+          audio.volume = Math.max(0, startVol * (1 - step / steps));
+          if (step >= steps) { clearInterval(iv); audio.pause(); }
+        }, stepTime);
+      }
+    }, fadeStart);
+
+    const t2 = setTimeout(() => onDoneRef.current(), fadeStart + fadeDuration + 300);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  return (
+    <motion.div key="reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      transition={{ duration: 1 }}
+      className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+      <TextHeart />
+      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 3, duration: 1.5 }} className="z-20 text-center">
+        <h2 className="text-pink-deep font-mono text-xl tracking-[0.3em] uppercase glow-text mb-2">Decrypted</h2>
+        <div className="w-12 h-px bg-pink-deep/30 mx-auto mb-8" />
+      </motion.div>
+      <div className="absolute top-8 left-8 text-[10px] font-mono text-white/10 uppercase tracking-widest space-y-1">
+        <div>ln: 420</div><div>id: 0xDEADBEEF</div><div>type: organic_emotion</div>
+      </div>
+      <div className="absolute bottom-8 right-8 text-[10px] font-mono text-white/10 uppercase tracking-widest">
+        heart_reveal // success
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Messenger Screen 2 (régi + új párbeszéd) ────────────────────────────────
+const SCRIPT_2: Msg[] = [
+  // ── Régi üzenetek (szürkítve jelennek meg, mint "előzmény") ──
+  ...SCRIPT,
+  // ── Új párbeszéd (ezt írd át kedved szerint!) ──
+  { from: 'friend', text: 'Heeey... Ez gyönyörű volt. 😭' },
+  { from: 'me',    text: 'Ugye? Azt akartam, hogy tudd...' },
+  { from: 'me',    text: 'Szóval. Mit szólsz hozzá? 🥺' },
+  { from: 'friend', text: 'Mit szólok?.. Nem tudok mit mondani.' },
+  { from: 'friend', text: 'Csak annyit tudok, hogy én is szeretlek. ❤️' },
+  { from: 'me',    text: 'Akkor minden rendben van a világban. 💕' },
+];
+
+const HISTORY_COUNT = SCRIPT.length; // ennyi az "előzmény"
+
+const MessengerScreen2 = ({ onDone }: { onDone: () => void }) => {
+  const [sent, setSent] = useState<Msg[]>([...SCRIPT]); // rögtön betöltjük a régit
+  const [inputText, setInputText] = useState('');
+  const [isTypingMe, setIsTypingMe] = useState(false);
+  const [isFriendTyping, setIsFriendTyping] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scriptIdx = useRef(HISTORY_COUNT); // az új üzenetektől indul
+  const running = useRef(false);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [sent, inputText, isFriendTyping]);
+
+  useEffect(() => {
+    if (running.current) return;
+    running.current = true;
+
+    const runNext = async () => {
+      if (scriptIdx.current >= SCRIPT_2.length) {
+        setTimeout(() => setShowButton(true), 500);
+        return;
+      }
+      const msg = SCRIPT_2[scriptIdx.current];
+      scriptIdx.current++;
+
+      if (msg.from === 'friend') {
+        await new Promise(r => setTimeout(r, 600));
+        setIsFriendTyping(true);
+        await new Promise(r => setTimeout(r, 900 + msg.text.length * 28));
+        setIsFriendTyping(false);
+        setSent(p => [...p, msg]);
+        playReceivedSound();
+        await new Promise(r => setTimeout(r, 500));
+      } else {
+        await new Promise(r => setTimeout(r, 400));
+        setIsTypingMe(true);
+        let built = '';
+        for (const ch of msg.text) {
+          built += ch;
+          setInputText(built);
+          playKeyClick();
+          const d = ch === ' ' ? 80 + Math.random() * 60
+                  : ch === '.' ? 130 + Math.random() * 80
+                  : 48 + Math.random() * 52;
+          await new Promise(r => setTimeout(r, d));
+        }
+        await new Promise(r => setTimeout(r, 380));
+        setIsTypingMe(false);
+        setInputText('');
+        setSent(p => [...p, msg]);
+        playSentSound();
+        await new Promise(r => setTimeout(r, 350));
+      }
+      runNext();
+    };
+
+    setTimeout(runNext, 1200);
+  }, []);
+
+  return (
+    <motion.div key="messenger2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col items-center justify-center bg-[#0a0a0f] overflow-hidden"
+      style={{ position: 'fixed', inset: 0 }}>
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/3 w-80 h-80 rounded-full bg-pink-600/5 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/3 w-60 h-60 rounded-full bg-indigo-600/5 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-sm mx-4 flex flex-col gap-1">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-t-2xl border border-white/8 bg-white/4 backdrop-blur-md mb-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-xs font-bold text-white">H</div>
+          <div>
+            <p className="text-white/80 text-sm font-medium">Haver</p>
+            <p className="text-white/30 text-[10px]">{isFriendTyping ? 'ír...' : 'online'}</p>
+          </div>
+          <div className="ml-auto w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        </div>
+
+        {/* Messages */}
+        <div className="flex flex-col gap-2 px-2 min-h-[300px] max-h-[340px] overflow-y-auto">
+          <AnimatePresence initial={false}>
+            {sent.map((msg, i) => {
+              const isHistory = i < HISTORY_COUNT;
+              return (
+                <motion.div key={i}
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className={`flex ${msg.from === 'me' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-all ${
+                    msg.from === 'me'
+                      ? isHistory
+                        ? 'bg-gradient-to-br from-pink-500/40 to-rose-600/40 text-white/40 rounded-br-sm'
+                        : 'bg-gradient-to-br from-pink-500 to-rose-600 text-white rounded-br-sm'
+                      : isHistory
+                        ? 'bg-white/5 text-white/35 border border-white/5 rounded-bl-sm'
+                        : 'bg-white/10 text-white/85 border border-white/8 rounded-bl-sm'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+          {/* Elválasztó a régi és új üzenetek között */}
+          {sent.length >= HISTORY_COUNT && (
+            <div className="flex items-center gap-3 my-1 px-2">
+              <div className="flex-1 h-px bg-white/8" />
+              <span className="text-white/20 text-[10px] font-mono tracking-widest">most</span>
+              <div className="flex-1 h-px bg-white/8" />
+            </div>
+          )}
+          <AnimatePresence>
+            {isFriendTyping && (
+              <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex justify-start">
+                <div className="bg-white/10 border border-white/8 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 items-center">
+                  {[0,1,2].map(j => (
+                    <motion.div key={j} className="w-1.5 h-1.5 rounded-full bg-white/40"
+                      animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: j * 0.15 }} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input box */}
+        <div className="mt-3 flex items-center gap-2 px-3 py-2.5 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm min-h-[46px]">
+          <svg className="w-5 h-5 text-white/25 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+          </svg>
+          <div className="flex-1 min-h-[20px] flex items-center">
+            {inputText ? (
+              <span className="text-sm text-white/90 break-all leading-snug">
+                {inputText}
+                {isTypingMe && <span className="inline-block w-0.5 h-4 bg-pink-400 ml-0.5 align-middle animate-pulse" />}
+              </span>
+            ) : (
+              <span className="text-sm text-white/20 select-none">Üzenet...</span>
+            )}
+          </div>
+          <motion.div animate={{ scale: inputText ? 1 : 0.85, opacity: inputText ? 1 : 0.25 }}>
+            <svg className="w-7 h-7 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+            </svg>
+          </motion.div>
+        </div>
+
+        {/* CTA */}
+        <AnimatePresence>
+          {showButton && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              className="flex justify-center mt-5">
+              <button onClick={onDone}
+                className="group flex items-center gap-3 px-7 py-3.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white font-mono text-xs tracking-widest uppercase shadow-lg shadow-pink-500/25 transition-all duration-300 hover:scale-105">
+                <Heart size={14} className="group-hover:scale-125 transition-transform" />
+                ← Vissza
+                <span className="terminal-cursor" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+};
+
+
 export default function App() {
-  const [stage, setStage] = useState<'console' | 'messenger' | 'hack1' | 'hack2' | 'slideshow' | 'reveal'>('console');
+  const [stage, setStage] = useState<'console' | 'messenger' | 'hack1' | 'hack2' | 'slideshow' | 'reveal' | 'messenger2'>('console');
   const [consoleFinished, setConsoleFinished] = useState(false);
 
   const handleReveal = useCallback(() => {
@@ -912,26 +1166,12 @@ export default function App() {
 
         {/* Reveal */}
         {stage === 'reveal' && (
-          <motion.div key="reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="relative w-full h-screen flex items-center justify-center overflow-hidden">
-            <TextHeart />
-            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 3, duration: 1.5 }} className="z-20 text-center">
-              <h2 className="text-pink-deep font-mono text-xl tracking-[0.3em] uppercase glow-text mb-2">Decrypted</h2>
-              <div className="w-12 h-px bg-pink-deep/30 mx-auto mb-8" />
-              <motion.button
-                onClick={e => { e.stopPropagation(); setStage('console'); setConsoleFinished(false); }}
-                className="text-white/20 hover:text-white/60 transition-colors uppercase text-[10px] tracking-widest font-mono">
-                Re-encrypt
-              </motion.button>
-            </motion.div>
-            <div className="absolute top-8 left-8 text-[10px] font-mono text-white/10 uppercase tracking-widest space-y-1">
-              <div>ln: 420</div><div>id: 0xDEADBEEF</div><div>type: organic_emotion</div>
-            </div>
-            <div className="absolute bottom-8 right-8 text-[10px] font-mono text-white/10 uppercase tracking-widest">
-              heart_reveal // success
-            </div>
-          </motion.div>
+          <RevealScreen key="reveal" onDone={() => setStage('messenger2')} />
+        )}
+
+        {/* Messenger 2 */}
+        {stage === 'messenger2' && (
+          <MessengerScreen2 key="messenger2" onDone={() => setStage('reveal')} />
         )}
 
       </AnimatePresence>
