@@ -633,7 +633,7 @@ const LOVE_QUOTES = [
 // Ha saját zenét akarsz, rakd be: src/assets/song.mp3
 // és kommenteld ki a Web Audio részt, kommenteld be az alábbi sort:
 // const SONG_SRC = '/src/assets/song.mp3';
-const SONG_SRC: string | null = '/src/assets/song.mp3'
+const SONG_SRC: string | null = '/song.mp3'
 
 // Globális audio ref – a Slideshow tölti fel, a RevealScreen olvassa
 const globalAudioRef = { current: null as HTMLAudioElement | null };
